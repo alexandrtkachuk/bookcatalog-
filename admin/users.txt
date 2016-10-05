@@ -1,0 +1,2 @@
+sasha:$apr1$aL......$w9LHNlzEbvEVPsbuo3eg/.
+john:$apr1$iP......$kzVSFFwdNoRkAnHafkIaD1
