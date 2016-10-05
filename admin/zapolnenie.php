@@ -20,6 +20,8 @@
 	settype($cena,integer);
 	
 	#print "!!!!!!!!";
+
+	print_r ($_GET);
 		
 	if(!empty($name_book) && !empty($ganr) && !empty($opisanie) && !empty($autor) && $cena>0){
 	    include("..//mlib.php");
@@ -30,7 +32,7 @@
 		$mBook->add_book($name_book,$ganr,$opisanie,$autor,$cena);
 		
 		$mBook->_destruct();
-		echo "ƒанные внесены  коректно!";
+		echo "данные внесены  коректно!";
 	}
 	elseif(!empty($add)){
 		echo "ƒанные внесены не коректно!";

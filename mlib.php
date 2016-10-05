@@ -1,5 +1,5 @@
 <?php
-	
+	#You must change it 
 	define("m_hostname",  "localhost");
 	define("m_username",  "ihelp");
 	define("m_password",  "tihelp");
@@ -18,40 +18,47 @@ class Book{
 		var $BookAvtora;//stroka s avorom(avtorami)
 		var $BookGanr;//ganru knigi
 		var $BookOpisanie;//opisanie knigi
-		
+		public $linkDB;	
 		
 		function __construct()
 		{
 			
 				
 	
-			mysqli_connect(m_hostname, m_username, m_password, "db_ihelp");
+			$this->linkDB = mysqli_connect(m_hostname, m_username, m_password, "db_ihelp");
 			#mysqli_select_db("db_ihelp");
 
 			#print "good";
+			if (!$this->linkDB) 
+			{
+			    echo "Ошибка: Невозможно установить соединение с MySQL." . PHP_EOL;
+			    echo "Код ошибки errno: " . mysqli_connect_errno() . PHP_EOL;
+			    echo "Текст ошибки error: " . mysqli_connect_error() . PHP_EOL;
+			    exit;
+			}
 			
 		}
 		
 		function zapros(){
 				//zapros vseh knig
-				$this->zapros=mysqli_query("select * from sbook");
+				$this->zapros=mysqli_query($this->linkDB,"select * from sbook");
 				
 		}
 		
 		function zaprosid($id){
 				//zapros vseh knig
-				$this->zapros=mysqli_query("select * from sbook where id=$id");
+				$this->zapros=mysqli_query($this->linkDB, "select * from sbook where id=$id");
 				
 		}
 		
 		function zapros_ganr($ganr){
 				//zapros vseh knig
-				$this->zapros=mysqli_query("select sbook.id, sbook.name, sbook.opisanie,sbook.cena from sbook,ganr ,book_ganr where ganr.name='$ganr' and ganr.id=book_ganr.idganr and book_ganr.idbook=sbook.id");
+				$this->zapros=mysqli_query($this->linkDB, "select sbook.id, sbook.name, sbook.opisanie,sbook.cena from sbook,ganr ,book_ganr where ganr.name='$ganr' and ganr.id=book_ganr.idganr and book_ganr.idbook=sbook.id");
 			
 		}
 	
 		function zapros_avtor($avtor){
-				$this->zapros=mysqli_query("select sbook.id, sbook.name, sbook.opisanie,sbook.cena from sbook,avtor ,book_avtor where avtor.name='$avtor' and avtor.id=book_avtor.idavtor and book_avtor.idbook=sbook.id");
+				$this->zapros=mysqli_query($this->linkDB, "select sbook.id, sbook.name, sbook.opisanie,sbook.cena from sbook,avtor ,book_avtor where avtor.name='$avtor' and avtor.id=book_avtor.idavtor and book_avtor.idbook=sbook.id");
 			
 		}
 		
@@ -60,27 +67,27 @@ class Book{
 			if($res){
 				$this->BookAvtora="";
 				$this->BookGanr="";
-				$this->BookId=$res[id];
-				$this->BookName=$res[name];
-				$this->BookOpisanie=$res[opisanie];
-				$this->BookCena=$res[cena];
+				$this->BookId=$res['id'];
+				$this->BookName=$res['name'];
+				$this->BookOpisanie=$res['opisanie'];
+				$this->BookCena=$res['cena'];
 				//dobavlenie avtorov
-				$rezults_avt=mysqli_query("select avtor.name  from avtor,sbook,book_avtor WHERE avtor.id=book_avtor.idavtor AND sbook.id=book_avtor.idbook AND sbook.id=$res[0]");
+				$rezults_avt=mysqli_query($this->linkDB, "select avtor.name  from avtor,sbook,book_avtor WHERE avtor.id=book_avtor.idavtor AND sbook.id=book_avtor.idbook AND sbook.id=$res[0]");
 		while($res_av=mysqli_fetch_array($rezults_avt)){
 				if(strlen($this->BookAvtora)>0){
 						$this->BookAvtora=str_pad($this->BookAvtora,strlen($this->BookAvtora)+1,",");
 				}
-				$this->BookAvtora=str_pad($this->BookAvtora,strlen($this->BookAvtora)+strlen($res_av[name]),$res_av[name]);
+				$this->BookAvtora=str_pad($this->BookAvtora,strlen($this->BookAvtora)+strlen($res_av['name']),$res_av['name']);
 			}
 				
 			//dobavlenie ganrov
-			$rezults_gnr=mysqli_query("select ganr.name  from ganr,sbook,book_ganr WHERE ganr.id=book_ganr.idganr AND sbook.id=book_ganr.idbook AND sbook.id=$res[0]");
+			$rezults_gnr=mysqli_query($this->linkDB, "select ganr.name  from ganr,sbook,book_ganr WHERE ganr.id=book_ganr.idganr AND sbook.id=book_ganr.idbook AND sbook.id=$res[0]");
 			while($res_gn=mysqli_fetch_array($rezults_gnr)){
 					
 				if(strlen($this->BookGanr)>0){
 						$this->BookGanr=str_pad($this->BookGanr,strlen($this->BookGanr)+1,",");
 				}
-				$this->BookGanr=str_pad($this->BookGanr,strlen($this->BookGanr)+strlen($res_gn[name]),$res_gn[name]);
+				$this->BookGanr=str_pad($this->BookGanr,strlen($this->BookGanr)+strlen($res_gn['name']),$res_gn['name']);
 			
 			}
 				return true;
@@ -93,8 +100,8 @@ class Book{
 		
 		//
 		function del_book(){
-				mysqli_query("delete from sbook where id='$this->BookId'");
-				mysqli_query("delete from book_ganr where idbook ='$this->BookId'");
+				mysqli_query($this->linkDB, "delete from sbook where id='$this->BookId'");
+				mysqli_query($this->linkDB, "delete from book_ganr where idbook ='$this->BookId'");
 				
 			
 		}
@@ -115,49 +122,57 @@ class Book{
 				$mavtor=explode(",",$autor); 
 				
 				
-				mysqli_query("INSERT INTO sbook VALUES(0,'$name_book','$opisanie',$cena)");
-				$zapros1=mysqli_query("select id from sbook where name='$name_book' and opisanie='$opisanie' and cena='$cena' ");
+				mysqli_query($this->linkDB, "INSERT INTO sbook VALUES(0,'$name_book','$opisanie',$cena)");
+				$zapros1=mysqli_query($this->linkDB, "select id from sbook where name='$name_book' and opisanie='$opisanie' and cena='$cena' ");
 				$rez=mysqli_fetch_array($zapros1);
 				global $idbook;
-				$idbook=$rez[id];
+				$idbook=$rez['id'];
 				settype($idbook,integer);
-				foreach($mganr as $k=>$i){
-					$rezz=mysqli_query("select id from ganr where name='$i'");
-					if($rez=mysqli_fetch_array($rezz)){
-							//est takoj ganr svjazuvaem v tablice
-						$idganr=$rez[id];
-						settype($idganr,integer);
-						mysqli_query("INSERT INTO book_ganr VALUES($idbook,$idganr)");
-					}
-					else{
-						//net takogo ganra
-						mysqli_query("INSERT INTO ganr VALUES(0,'$i')");
-						$zapros2=mysqli_query("select id from ganr where name='$i'");
-						$rez=mysqli_fetch_array($zapros2);
-						$idganr=$rez[id];
-						settype($idganr,integer);
-						mysqli_query("INSERT INTO book_ganr VALUES($idbook,$idganr)");
-					}
-			}
+				foreach($mganr as $k=>$i)
+				{
+				    ##add ganr
+				    $rezz=mysqli_query($this->linkDB, "select id from ganr where name='$i'");
+				    if($rez=mysqli_fetch_array($rezz)){
+					//est takoj ganr svjazuvaem v tablice
+					$idganr=$rez['id'];
+					settype($idganr,integer);
+					mysqli_query($this->linkDB, "INSERT INTO book_ganr VALUES(0,$idbook,$idganr)");
+					
+				    }
+				    else{
+					//net takogo ganra
+					mysqli_query($this->linkDB, "INSERT INTO ganr VALUES(0,'$i')");
+					$zapros2=mysqli_query($this->linkDB, "select id from ganr where name='$i'");
+					$rez=mysqli_fetch_array($zapros2);
+
+					print_r($rez);
+					$idganr=$rez['id'];
+					settype($idganr,integer);
+					
+					mysqli_query($this->linkDB, "INSERT INTO book_ganr VALUES(0,$idbook,$idganr)");
+
+					
+				    }
+				}
 			
 			
 				foreach($mavtor as $k=>$i){
-					$rezz=mysqli_query("select id from avtor where name='$i'");
+					$rezz=mysqli_query($this->linkDB, "select id from avtor where name='$i'");
 					if($rez=mysqli_fetch_array($rezz)){
 							//est takoj ganr svjazuvaem v tablice
-						$idavtor=$rez[id];
+						$idavtor=$rez['id'];
 						//echo "$idavtor<br />";
 						settype($idavtor,integer);
-						mysqli_query("INSERT INTO book_avtor VALUES($idbook,$idavtor)");
+						mysqli_query($this->linkDB, "INSERT INTO book_avtor VALUES(0,$idbook,$idavtor)");
 					}
 					else{
 						//net takogo ganra
-						mysqli_query("INSERT INTO avtor VALUES(0,'$i')");
-						$zapros2=mysqli_query("select id from avtor where name='$i'");
+						mysqli_query($this->linkDB, "INSERT INTO avtor VALUES(0,'$i')");
+						$zapros2=mysqli_query($this->linkDB, "select id from avtor where name='$i'");
 						$rez=mysqli_fetch_array($zapros2);
-						$idavtor=$rez[id];
+						$idavtor=$rez['id'];
 						settype($idavtor,integer);
-						mysqli_query("INSERT INTO book_avtor VALUES($idbook,$idavtor)");
+						mysqli_query($this->linkDB, "INSERT INTO book_avtor VALUES(0,$idbook,$idavtor)");
 						
 					
 					}
@@ -167,7 +182,7 @@ class Book{
 		
 		
 		function _destruct(){
-				mysqli_close();
+				mysqli_close($this->linkDB);
 			
 		}
 		
