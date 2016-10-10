@@ -1,10 +1,5 @@
 <?php
-	#You must change it 
-	define("m_hostname",  "localhost");
-	define("m_username",  "ihelp");
-	define("m_password",  "tihelp");
-	define("tmpfname",  "letters.txt");//имя файла для хранения писем 
-	
+		
 	
 class Book{
 		//public:
